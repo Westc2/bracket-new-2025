@@ -67,39 +67,33 @@
         form.insertBefore(fieldset, document.getElementById("submitButton"));
       });
 
-      // Fetch X-Factor data using JSONP
-      const script = document.createElement("script");
-      script.src = "https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec?get=xfactors&callback=populateXFactors";
-      document.body.appendChild(script);
-    });
-
-    function populateXFactors(data) {
-      console.log("populateXFactors called with:", data); // Log data for debugging
-      const matchups = [
-        { id: 1, label: "WSH|MON" },
-        { id: 2, label: "TOR|OTT" },
-        { id: 3, label: "TBL|FLA" },
-        { id: 4, label: "CAR|NJD" },
-        { id: 5, label: "WPG|STL" },
-        { id: 6, label: "VGK|MIN" },
-        { id: 7, label: "DAL|COL" },
-        { id: 8, label: "LAK|EDM" }
-      ];
-
-      matchups.forEach((m) => {
-        const select = document.getElementById(`xfactor${m.id}`);
-        select.innerHTML = ""; // Clear existing options
-        const players = data.players[m.label] || [];
-        players.forEach(p => {
-          const option = document.createElement("option");
-          option.value = p;
-          option.text = p;
-          select.appendChild(option);
+      // Fetch X-Factor data
+      fetch("https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec?get=xfactors")
+        .then(response => response.json())
+        .then(data => {
+          matchups.forEach((matchup) => {
+            const select = document.getElementById(`xfactor${matchup.id}`);
+            select.innerHTML = "";
+            data.players[matchup.label].forEach(player => {
+              const option = document.createElement("option");
+              option.value = player;
+              option.text = player;
+              select.appendChild(option);
+            });
+          });
+        })
+        .catch(err => {
+          console.error("Failed to load X-Factor data:", err);
         });
-      });
-    }
+    });
   </script>
 </head>
 <body>
   <h1>NHL Playoff Bracket Challenge - Round 1</h1>
-  <form
+  <form id="playoffForm" method="POST" action="https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec">
+    <label for="name">Your Name:</label>
+    <input type="text" id="name" name="name" required><br><br>
+    <button id="submitButton" type="submit">Submit Picks</button>
+  </form>
+</body>
+</html>
