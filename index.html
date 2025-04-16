@@ -68,7 +68,7 @@
       });
 
       // Fetch X-Factor data
-      fetch("https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec")
+      fetch("https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec?get=xfactors")
         .then(response => response.json())
         .then(data => {
           matchups.forEach((matchup) => {
