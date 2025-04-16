@@ -30,4 +30,76 @@
           const option = document.createElement("option");
           option.value = team;
           option.text = team;
+          winnerSelect.appendChild(option);
+        });
+        winnerLabel.appendChild(winnerSelect);
+        fieldset.appendChild(winnerLabel);
+        fieldset.appendChild(document.createElement("br"));
 
+        // Games dropdown
+        const gamesLabel = document.createElement("label");
+        gamesLabel.textContent = "Pick Number of Games: ";
+        const gamesSelect = document.createElement("select");
+        gamesSelect.name = `games${matchup.id}`;
+        for (let i = 4; i <= 7; i++) {
+          const option = document.createElement("option");
+          option.value = i;
+          option.text = i;
+          gamesSelect.appendChild(option);
+        }
+        gamesLabel.appendChild(gamesSelect);
+        fieldset.appendChild(gamesLabel);
+        fieldset.appendChild(document.createElement("br"));
+
+        // X-Factor dropdown (populated from Google Sheet)
+        const xfactorLabel = document.createElement("label");
+        xfactorLabel.textContent = "Pick X-Factor Player: ";
+        const xfactorSelect = document.createElement("select");
+        xfactorSelect.name = `xfactor${matchup.id}`;
+        xfactorSelect.id = `xfactor${matchup.id}`;
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.text = "Loading...";
+        xfactorSelect.appendChild(placeholder);
+        xfactorLabel.appendChild(xfactorSelect);
+        fieldset.appendChild(xfactorLabel);
+
+        form.insertBefore(fieldset, document.getElementById("submitButton"));
+      });
+
+      // Fetch X-Factor data using JSONP
+      const script = document.createElement("script");
+      script.src = "https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec?get=xfactors&callback=populateXFactors";
+      document.body.appendChild(script);
+    });
+
+    function populateXFactors(data) {
+      console.log("populateXFactors called with:", data); // Log data for debugging
+      const matchups = [
+        { id: 1, label: "WSH|MON" },
+        { id: 2, label: "TOR|OTT" },
+        { id: 3, label: "TBL|FLA" },
+        { id: 4, label: "CAR|NJD" },
+        { id: 5, label: "WPG|STL" },
+        { id: 6, label: "VGK|MIN" },
+        { id: 7, label: "DAL|COL" },
+        { id: 8, label: "LAK|EDM" }
+      ];
+
+      matchups.forEach((m) => {
+        const select = document.getElementById(`xfactor${m.id}`);
+        select.innerHTML = ""; // Clear existing options
+        const players = data.players[m.label] || [];
+        players.forEach(p => {
+          const option = document.createElement("option");
+          option.value = p;
+          option.text = p;
+          select.appendChild(option);
+        });
+      });
+    }
+  </script>
+</head>
+<body>
+  <h1>NHL Playoff Bracket Challenge - Round 1</h1>
+  <form
