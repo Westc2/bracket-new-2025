@@ -1,98 +1,78 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NHL Playoff Bracket Challenge - Round 1</title>
+  <meta charset="utf-8" />
+  <title>NHL Playoff Bracket Challenge - Round 1</title>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const matchups = [
         { id: 1, label: "WSH|MON", teams: ["Washington", "Montreal"] },
-        { id: 2, label: "TOR|OTT", teams: ["Toronto", "Ottawa"] },
-        { id: 3, label: "TBL|FLA", teams: ["Tampa Bay", "Florida"] },
-        { id: 4, label: "CAR|NJD", teams: ["Carolina", "New Jersey"] },
-        { id: 5, label: "WPG|STL", teams: ["Winnipeg", "St. Louis"] },
-        { id: 6, label: "VGK|MIN", teams: ["Vegas", "Minnesota"] },
-        { id: 7, label: "DAL|COL", teams: ["Dallas", "Colorado"] },
-        { id: 8, label: "LAK|EDM", teams: ["Los Angeles", "Edmonton"] }
+        { id: 2, label: "TOR|OTT", teams: ["Toronto",   "Ottawa"]   },
+        { id: 3, label: "TBL|FLA", teams: ["Tampa Bay",  "Florida"]   },
+        { id: 4, label: "CAR|NJD", teams: ["Carolina",   "New Jersey"]},
+        { id: 5, label: "WPG|STL", teams: ["Winnipeg",   "St. Louis"] },
+        { id: 6, label: "VGK|MIN", teams: ["Vegas",      "Minnesota"] },
+        { id: 7, label: "DAL|COL", teams: ["Dallas",     "Colorado"]  },
+        { id: 8, label: "LAK|EDM", teams: ["Los Angeles","Edmonton"]  }
       ];
 
       const form = document.getElementById("playoffForm");
 
-      matchups.forEach((matchup, index) => {
-        const fieldset = document.createElement("fieldset");
-        fieldset.innerHTML = `<legend>Matchup ${index + 1}: ${matchup.label}</legend>`;
-
-        // Winner dropdown
-        const winnerLabel = document.createElement("label");
-        winnerLabel.textContent = "Pick Winner: ";
-        const winnerSelect = document.createElement("select");
-        winnerSelect.name = `winner${matchup.id}`;
-        matchup.teams.forEach(team => {
-          const option = document.createElement("option");
-          option.value = team;
-          option.text = team;
-          winnerSelect.appendChild(option);
-        });
-        winnerLabel.appendChild(winnerSelect);
-        fieldset.appendChild(winnerLabel);
-        fieldset.appendChild(document.createElement("br"));
-
-        // Games dropdown
-        const gamesLabel = document.createElement("label");
-        gamesLabel.textContent = "Pick Number of Games: ";
-        const gamesSelect = document.createElement("select");
-        gamesSelect.name = `games${matchup.id}`;
-        for (let i = 4; i <= 7; i++) {
-          const option = document.createElement("option");
-          option.value = i;
-          option.text = i;
-          gamesSelect.appendChild(option);
-        }
-        gamesLabel.appendChild(gamesSelect);
-        fieldset.appendChild(gamesLabel);
-        fieldset.appendChild(document.createElement("br"));
-
-        // X-Factor dropdown (populated from Google Sheet)
-        const xfactorLabel = document.createElement("label");
-        xfactorLabel.textContent = "Pick X-Factor Player: ";
-        const xfactorSelect = document.createElement("select");
-        xfactorSelect.name = `xfactor${matchup.id}`;
-        xfactorSelect.id = `xfactor${matchup.id}`;
-        const placeholder = document.createElement("option");
-        placeholder.value = "";
-        placeholder.text = "Loading...";
-        xfactorSelect.appendChild(placeholder);
-        xfactorLabel.appendChild(xfactorSelect);
-        fieldset.appendChild(xfactorLabel);
-
-        form.insertBefore(fieldset, document.getElementById("submitButton"));
+      // Build the form fields for each series
+      matchups.forEach(m => {
+        const fs = document.createElement("fieldset");
+        fs.innerHTML = `
+          <legend>Matchup ${m.id}: ${m.label}</legend>
+          <label>Pick Winner:
+            <select name="winner${m.id}">
+              ${m.teams.map(t => `<option>${t}</option>`).join("")}
+            </select>
+          </label><br>
+          <label>Pick Number of Games:
+            <select name="games${m.id}">
+              ${[4,5,6,7].map(n => `<option>${n}</option>`).join("")}
+            </select>
+          </label><br>
+          <label>Pick X‑Factor Player:
+            <select name="xfactor${m.id}" id="xfactor${m.id}">
+              <option>Loading...</option>
+            </select>
+          </label>
+        `;
+        form.insertBefore(fs, document.getElementById("submitButton"));
       });
 
-      // Fetch X-Factor data
-      fetch("https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec?get=xfactors")
-        .then(response => response.json())
-        .then(data => {
-          matchups.forEach((matchup) => {
-            const select = document.getElementById(`xfactor${matchup.id}`);
-            select.innerHTML = "";
-            data.players[matchup.label].forEach(player => {
-              const option = document.createElement("option");
-              option.value = player;
-              option.text = player;
-              select.appendChild(option);
-            });
+      // JSONP callback to populate X‑Factor dropdowns
+      window.populateXFactors = function(data) {
+        matchups.forEach(m => {
+          const sel = document.getElementById(`xfactor${m.id}`);
+          sel.innerHTML = "";  // clear Loading...
+          (data.players[m.label] || []).forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p;
+            opt.textContent = p;
+            sel.appendChild(opt);
           });
-        })
-        .catch(err => {
-          console.error("Failed to load X-Factor data:", err);
         });
+      };
+
+      // Insert the JSONP <script> tag to fetch X‑Factor data
+      const s = document.createElement("script");
+      s.src = "https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec"
+            + "?get=xfactors"
+            + "&callback=populateXFactors";
+      document.head.appendChild(s);
     });
   </script>
 </head>
 <body>
-  <h1>NHL Playoff Bracket Challenge - Round 1</h1>
-  <form id="playoffForm" method="POST" action="https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec">
-    <label for="name">Your Name:</label>
-    <input type="text" id="name" name="name" required><br><br>
+  <h1>NHL Playoff Bracket Challenge - Round 1</h1>
+  <form id="playoffForm"
+        method="POST"
+        action="https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec">
+    <label>Your Name:
+      <input type="text" name="name" required>
+    </label><br><br>
     <button id="submitButton" type="submit">Submit Picks</button>
   </form>
 </body>
