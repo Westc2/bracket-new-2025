@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <title>NHL Playoff Bracket Challenge – Round 1</title>
+  <title>NHL Playoff Bracket Challenge - Round 1</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     fieldset { margin-bottom: 20px; padding: 10px; border-radius:5px; border:1px solid #ccc; }
@@ -13,7 +13,7 @@
   </style>
 </head>
 <body>
-  <h1>NHL Playoff Bracket Challenge – Round 1</h1>
+  <h1>NHL Playoff Bracket Challenge - Round 1</h1>
   <form id="playoffForm" method="POST"
         action="https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec">
     <label>Your Name:
@@ -29,12 +29,12 @@
     const matchups = [
       { id:1,label:"WSH|MON",teams:["Washington","Montreal"] },
       { id:2,label:"TOR|OTT",teams:["Toronto","Ottawa"] },
-      { id:3,label:"TBL|FLA",teams:["Tampa Bay","Florida"] },
-      { id:4,label:"CAR|NJD",teams:["Carolina","New Jersey"] },
-      { id:5,label:"WPG|STL",teams:["Winnipeg","St. Louis"] },
+      { id:3,label:"TBL|FLA",teams:["Tampa Bay","Florida"] },
+      { id:4,label:"CAR|NJD",teams:["Carolina","New Jersey"] },
+      { id:5,label:"WPG|STL",teams:["Winnipeg","St. Louis"] },
       { id:6,label:"VGK|MIN",teams:["Vegas","Minnesota"] },
       { id:7,label:"DAL|COL",teams:["Dallas","Colorado"] },
-      { id:8,label:"LAK|EDM",teams:["Los Angeles","Edmonton"] }
+      { id:8,label:"LAK|EDM",teams:["Los Angeles","Edmonton"] }
     ];
 
     // Build the bracket form
@@ -62,25 +62,29 @@
       container.appendChild(fs);
     });
 
-    // JSONP callback
-    function populateXFactors(data) {
-      matchups.forEach(m => {
-        const sel = document.getElementById(`xfactor${m.id}`);
-        sel.innerHTML = '';
-        (data.players[m.label]||[]).forEach(p => {
-          const o = document.createElement('option');
-          o.value = p; o.text = p;
-          sel.appendChild(o);
+    // Fetch and populate X-Factor data
+    async function fetchXFactors() {
+      try {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec?get=xfactors');
+        const data = await response.json();
+
+        matchups.forEach(m => {
+          const sel = document.getElementById(`xfactor${m.id}`);
+          sel.innerHTML = ''; // Clear 'Loading...' option
+          (data.players[m.label] || []).forEach(p => {
+            const o = document.createElement('option');
+            o.value = p;
+            o.text = p;
+            sel.appendChild(o);
+          });
         });
-      });
+      } catch (error) {
+        console.error('Error fetching X-Factor data:', error);
+      }
     }
 
-    // Inject JSONP script to bypass CORS
-    const s = document.createElement('script');
-    s.src = 
-      "https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec" +
-      "?get=xfactors&callback=populateXFactors";
-    document.head.appendChild(s);
+    // Run the data fetch on page load
+    window.onload = fetchXFactors;
   </script>
 </body>
 </html>
