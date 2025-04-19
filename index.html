@@ -1,86 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>NHL Bracket Challenge 2025</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NHL Bracket 2025</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 30px;
-      background-color: #f8f9fa;
-    }
-    fieldset {
-      margin-bottom: 20px;
-      padding: 15px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      background-color: #fff;
-    }
-    legend {
-      font-weight: bold;
-      font-size: 1.2em;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-    select {
-      margin-left: 10px;
-    }
-    #submitButton {
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      background-color: #007bff;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #submitButton:hover {
-      background-color: #0056b3;
-    }
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    label, select, input { display: block; margin-bottom: 10px; }
+    select:disabled { color: gray; }
   </style>
 </head>
 <body>
-  <h1>NHL Playoff Bracket Challenge 2025</h1>
-  <form id="playoffForm" method="POST" action="https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec">
-    <label for="name">Your Name:
-      <input type="text" name="name" id="name" required>
-    </label>
+  <h1>NHL Playoff Bracket - 2025</h1>
 
-    <!-- Matchup fields will be inserted here dynamically -->
-    <button type="submit" id="submitButton">Submit Picks</button>
+  <form id="bracket-form" action="https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec" method="POST">
+    <label for="name">Your Name:</label>
+    <input type="text" id="name" name="name" required />
+
+    <!-- Matchups Loop (example for 1, repeat for all 8) -->
+    <div id="matchups">
+      <!-- These divs will be filled dynamically -->
+    </div>
+
+    <button type="submit">Submit Picks</button>
   </form>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const matchups = [
-        { id: 1, label: "WSH|MON", teams: ["Washington", "Montreal"] },
-        { id: 2, label: "TOR|OTT", teams: ["Toronto", "Ottawa"] },
-        { id: 3, label: "TBL|FLA", teams: ["Tampa Bay", "Florida"] },
-        { id: 4, label: "CAR|NJD", teams: ["Carolina", "New Jersey"] },
-        { id: 5, label: "WPG|STL", teams: ["Winnipeg", "St. Louis"] },
-        { id: 6, label: "VGK|MIN", teams: ["Vegas", "Minnesota"] },
-        { id: 7, label: "DAL|COL", teams: ["Dallas", "Colorado"] },
-        { id: 8, label: "LAK|EDM", teams: ["Los Angeles", "Edmonton"] }
-      ];
+    const matchups = [
+      "WSH|MON",
+      "TOR|OTT",
+      "TBL|FLA",
+      "CAR|NJD",
+      "WPG|STL",
+      "VGK|MIN",
+      "DAL|COL",
+      "LAK|EDM"
+    ];
 
-      const form = document.getElementById("playoffForm");
+    function createMatchupRow(index, teams, xFactors) {
+      const div = document.createElement('div');
 
-      matchups.forEach((matchup, index) => {
-        const fieldset = document.createElement("fieldset");
-        fieldset.innerHTML = `<legend>Matchup ${index + 1}: ${matchup.label}</legend>`;
+      const [team1, team2] = teams.split('|');
 
-        // Winner dropdown
-        const winnerLabel = document.createElement("label");
-        winnerLabel.textContent = "Pick Winner:";
-        const winnerSelect = document.createElement("select");
-        winnerSelect.name = `winner${matchup.id}`;
-        matchup.teams.forEach(team => {
-          const option = document.createElement("option");
-          option.value = team;
-          option.text = team;
-          winnerSelect.appendChild(option);
-        });
-        winnerLabel.appendChild(winnerSelect);
-        fieldset.appendChild(winnerLabel);
+      div.innerHTML = `
+        <label>Matchup ${index + 1}: ${team1} vs ${team2}</label>
+        <select name="winner${index + 1}" required>
+          <option value="">-- Choose Winner --</option>
+          <option value="${team1}">${team1}</option>
+          <option value="${team2}">${team2}</option>
+        </select>
+
+        <select name="games${index + 1}" required>
+          <option value="">-- Games --</option>
+          ${[4, 5, 6, 7].map(num => `<option value="${num}">${num} games</option>`).join('')}
+        </select>
+
+        <select name="xfactor${index + 1}" required>
+          <option value="">-- X-Factor --</option>
+          ${(xFactors[teams] || []).map(p => `<option value="${p}">${p}</option>`).join('')}
+        </select>
+      `;
+
+      return div;
+    }
+
+    function populateXFactors(data) {
+      const matchupsDiv = document.getElementById("matchups");
+      matchupsDiv.innerHTML = "";
+
+      matchups.forEach((teams, i) => {
+        const row = createMatchupRow(i, teams, data.players);
+        matchupsDiv.appendChild(row);
+      });
+    }
+
+    // JSONP script to fetch X-Factors (bypasses CORS)
+    const script = document.createElement("script");
+    script.src = "https://script.google.com/macros/s/AKfycbz7YYcbwbnWuHajLNypDJaxg3Lc4GSfaVL0VX-NKzeOB8IdiWrBWnuiPJMVLnAaWzUS_w/exec?get=_
